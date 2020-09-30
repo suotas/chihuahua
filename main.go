@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func getTicker(client *bitbank.Client) {
+func getCandlesticks(client *bitbank.Client) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	candlesticks, _ := client.GetCandlesticks(ctx, "btc_jpy", "1day", "2020")
 	candlesticksData := candlesticks.Data.Candlesticks
