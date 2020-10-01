@@ -21,6 +21,6 @@ func getCandlesticks(client *bitbank.Client) {
 func main() {
 	godotenv.Load(".env")
 	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	getTicker(client)
+	getCandlesticks(client)
 	time.Sleep(time.Second * 1)
 }
