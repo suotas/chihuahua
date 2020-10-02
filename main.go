@@ -18,7 +18,6 @@ const (
 
 	pairBtcJpy = "btc_jpy"
 	candleType1Day = "1day"
-
 )
 
 func getCandlesticks() (*models.Candlesticks, error) {
@@ -50,13 +49,20 @@ func main() {
 	godotenv.Load(".env")
 	candlesticks, _ := getCandlesticks()
 
-	shortOhlcv := getOhlcv(candlesticks, 5, 0)
-	middleOhlcv := getOhlcv(candlesticks, 25, 0)
-	longOhlcv := getOhlcv(candlesticks, 75, 0)
+	var shortOhlcv, middleOhlcv, longOhlcv [][][]json.Number
+	var shortMa, middleMa, longMa []int
 
-	shortMa := getMovingAverage(shortOhlcv)
-	middleMa := getMovingAverage(middleOhlcv)
-	longMa := getMovingAverage(longOhlcv)
+	offsets := [...] int{0,1,2,3,4}
+
+	for _, v := range offsets {
+		shortOhlcv = append(shortOhlcv, getOhlcv(candlesticks, 7, v))
+		middleOhlcv = append(middleOhlcv, getOhlcv(candlesticks, 28, v))
+		longOhlcv = append(longOhlcv, getOhlcv(candlesticks, 74, v))
+
+		shortMa = append(shortMa, getMovingAverage(shortOhlcv[v]))
+		middleMa = append(middleMa, getMovingAverage(middleOhlcv[v]))
+		longMa = append(longMa, getMovingAverage(longOhlcv[v]))
+	}
 
 	fmt.Printf("short moving average:\t%d\n", shortMa)
 	fmt.Printf("middle moving average:\t%d\n", middleMa)
