@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+
 	bitbank "github.com/jjjjpppp/bitbank-go-client/v1"
 	"github.com/jjjjpppp/bitbank-go-client/v1/models"
 	"github.com/joho/godotenv"
@@ -36,13 +37,26 @@ func getOhlcv(candlesticks *models.Candlesticks, days, offset int) ([][]json.Num
 	return baseOhlcv[startIdx:endIdx]
 }
 
-func getMovingAverage(ohlcv [][]json.Number) (int) {
+func getSMA(ohlcv [][]json.Number) (int) {
 	temp := 0
 	for _, v := range ohlcv {
 		closePriceInt, _ := v[candlestickClosePriceIdx].Int64()
 		temp += int(closePriceInt)
 	}
+
 	return temp / len(ohlcv)
+}
+
+func getESMA(ohlcv [][]json.Number) (int) {
+	temp := 0
+	divisor := 0
+	for i, v := range ohlcv {
+		closePriceInt, _ := v[candlestickClosePriceIdx].Int64()
+		temp += int(closePriceInt) * (i + 1)
+		divisor += (i + 1)
+	}
+
+	return temp / divisor
 }
 
 func main() {
@@ -50,7 +64,8 @@ func main() {
 	candlesticks, _ := getCandlesticks()
 
 	var shortOhlcv, middleOhlcv, longOhlcv [][][]json.Number
-	var shortMa, middleMa, longMa []int
+	var shortSMA, middleSMA, longSMA []int
+	var shortESMA, middleESMA, longESMA []int
 
 	offsets := [...] int{0,1,2,3,4}
 
@@ -59,12 +74,23 @@ func main() {
 		middleOhlcv = append(middleOhlcv, getOhlcv(candlesticks, 28, v))
 		longOhlcv = append(longOhlcv, getOhlcv(candlesticks, 74, v))
 
-		shortMa = append(shortMa, getMovingAverage(shortOhlcv[v]))
-		middleMa = append(middleMa, getMovingAverage(middleOhlcv[v]))
-		longMa = append(longMa, getMovingAverage(longOhlcv[v]))
+		shortSMA = append(shortSMA, getSMA(shortOhlcv[v]))
+		shortESMA = append(shortESMA, getESMA(shortOhlcv[v]))
+
+		middleSMA = append(middleSMA, getSMA(middleOhlcv[v]))
+		middleESMA = append(middleESMA, getESMA(shortOhlcv[v]))
+		
+		longSMA = append(longSMA, getSMA(longOhlcv[v]))
+		longESMA = append(longESMA, getESMA(shortOhlcv[v]))
 	}
 
-	fmt.Printf("short moving average:\t%d\n", shortMa)
-	fmt.Printf("middle moving average:\t%d\n", middleMa)
-	fmt.Printf("long moving average:\t%d\n", longMa)
+	fmt.Printf("short SMA:\t%d\n", shortSMA)
+	fmt.Printf("short ESMA:\t%d\n", shortESMA)
+
+	fmt.Printf("middle SMA:\t%d\n", middleSMA)
+	fmt.Printf("middle ESMA:\t%d\n", middleESMA)
+
+	fmt.Printf("long SMA:\t%d\n", longSMA)
+	fmt.Printf("long ESMA:\t%d\n", longESMA)
+
 }
