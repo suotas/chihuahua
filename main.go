@@ -23,14 +23,30 @@ const (
 
 func getAssets() (*models.Assets, error) {
 	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
+	if err != nil {
+		// fatal error
+	}
 
 	return client.GetAssets(ctx)
 }
 
+func getDepth() (*models.Depth, error) {
+	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
+	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
+	if err != nil {
+		// fatal error
+	}
+
+	return client.GetDepth(ctx, pairBtcJpy)
+}
+
 func getCandlesticks() (*models.Candlesticks, error) {
 	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
+	if err != nil {
+		// fatal error
+	}
 
 	return client.GetCandlesticks(ctx, pairBtcJpy, candleType1Day, "2020")
 }
@@ -100,6 +116,7 @@ func main() {
 	fmt.Printf("long SMA:\t%d\n", longSMA)
 	fmt.Printf("long ESMA:\t%d\n", longESMA)
 
+<<<<<<< HEAD
 	assets, _ := getAssets()
 
 	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[0].Asset)
@@ -108,3 +125,21 @@ func main() {
 	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[1].FreeAmount)
 
 }
+=======
+	depth, _ := getDepth()
+
+	for _, v := range depth.Data.Asks {
+		price, _ := v[0].Int64()
+		volume, _ := v[1].Float64()
+		fmt.Printf("depth ask price: \t%d\n", price)
+		fmt.Printf("depth ask volume: \t%g\n", volume)
+	}
+
+	for _, v := range depth.Data.Bids {
+		price, _ := v[0].Int64()
+		volume, _ := v[1].Float64()
+		fmt.Printf("depth bid price: \t%d\n", price)
+		fmt.Printf("depth bid volume: \t%g\n", volume)
+	}
+}
+>>>>>>> 649ac477bf7d95f4a78691ad8a65c053f8fb72b1
