@@ -21,6 +21,16 @@ const (
 	candleType1Day = "1day"
 )
 
+func getAssets() (*models.Assets, error) {
+	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
+	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
+	if err != nil {
+		// fatal error
+	}
+
+	return client.GetAssets(ctx)
+}
+
 func getDepth() (*models.Depth, error) {
 	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
 	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
@@ -105,6 +115,13 @@ func main() {
 
 	fmt.Printf("long SMA:\t%d\n", longSMA)
 	fmt.Printf("long ESMA:\t%d\n", longESMA)
+
+	assets, _ := getAssets()
+
+	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[0].Asset)
+	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[0].FreeAmount)
+	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[1].Asset)
+	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[1].FreeAmount)
 
 	depth, _ := getDepth()
 
