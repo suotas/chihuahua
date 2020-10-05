@@ -116,7 +116,6 @@ func main() {
 	fmt.Printf("long SMA:\t%d\n", longSMA)
 	fmt.Printf("long ESMA:\t%d\n", longESMA)
 
-<<<<<<< HEAD
 	assets, _ := getAssets()
 
 	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[0].Asset)
@@ -124,8 +123,6 @@ func main() {
 	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[1].Asset)
 	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[1].FreeAmount)
 
-}
-=======
 	depth, _ := getDepth()
 
 	for _, v := range depth.Data.Asks {
@@ -142,4 +139,3 @@ func main() {
 		fmt.Printf("depth bid volume: \t%g\n", volume)
 	}
 }
->>>>>>> 649ac477bf7d95f4a78691ad8a65c053f8fb72b1
