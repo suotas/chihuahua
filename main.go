@@ -1,110 +1,60 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"os"
-	"time"
 
-	bitbank "github.com/jjjjpppp/bitbank-go-client/v1"
-	"github.com/jjjjpppp/bitbank-go-client/v1/models"
 	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/suotas/chihuahua/domain/calculator"
+	"github.com/suotas/chihuahua/domain/converter"
+	"github.com/suotas/chihuahua/domain/model"
+	"github.com/suotas/chihuahua/domain/repository"
+	"github.com/suotas/chihuahua/infra"
 )
 
-const (
-	ohlcvIdx = 0
-	candlestickOpenPriceIdx = 0
-	candlestickClosePriceIdx = 3
-
-	pairBtcJpy = "btc_jpy"
-	candleType1Day = "1day"
-)
-
-func getAssets() (*models.Assets, error) {
-	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
-	if err != nil {
-		// fatal error
-	}
-
-	return client.GetAssets(ctx)
-}
-
-func getDepth() (*models.Depth, error) {
-	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
-	if err != nil {
-		// fatal error
-	}
-
-	return client.GetDepth(ctx, pairBtcJpy)
-}
-
-func getCandlesticks() (*models.Candlesticks, error) {
-	client, _ := bitbank.NewClient(os.Getenv("BITBANK_API_KEY"), os.Getenv("BITBANK_SECRET"), nil)
-	ctx, err := context.WithTimeout(context.Background(), 10*time.Second)
-	if err != nil {
-		// fatal error
-	}
-
-	return client.GetCandlesticks(ctx, pairBtcJpy, candleType1Day, "2020")
-}
-
-func getOhlcv(candlesticks *models.Candlesticks, days, offset int) ([][]json.Number) {
-	baseOhlcv := candlesticks.Data.Candlesticks[ohlcvIdx].Ohlcv
-	startIdxMinus := days + offset
-	startIdx := len(baseOhlcv) - startIdxMinus -1
-	endIdx := len(baseOhlcv) - offset -1
-	
-	return baseOhlcv[startIdx:endIdx]
-}
-
-func getSMA(ohlcv [][]json.Number) (int) {
-	temp := 0
-	for _, v := range ohlcv {
-		closePriceInt, _ := v[candlestickClosePriceIdx].Int64()
-		temp += int(closePriceInt)
-	}
-
-	return temp / len(ohlcv)
-}
-
-func getESMA(ohlcv [][]json.Number) (int) {
-	temp := 0
-	divisor := 0
-	for i, v := range ohlcv {
-		closePriceInt, _ := v[candlestickClosePriceIdx].Int64()
-		temp += int(closePriceInt) * (i + 1)
-		divisor += (i + 1)
-	}
-
-	return temp / divisor
+type Config struct {
+	BITBANK_API_KEY string `required:"true"`
+	BITBANK_SECRET string
+	TRADE_PAIR string
+	USE_CANDLE_TYPE string
+	SHORT_OHLCV_LENGTH int
+	MIDDLE_OHLCV_LENGTH int
+	LONG_OHLCV_LENGTH int
 }
 
 func main() {
 	godotenv.Load(".env")
-	candlesticks, _ := getCandlesticks()
+	var config Config
+	envconfig.Process("", &config)
+	fmt.Println(config.BITBANK_API_KEY)
+	fmt.Println(config.BITBANK_SECRET)
+	var api repository.IApiClient
+	api, _ = infra.NewClient(config.BITBANK_API_KEY, config.BITBANK_SECRET)
+	candlesticks, _ := api.GetCandlesticks(config.TRADE_PAIR, config.USE_CANDLE_TYPE, "2020")
 
-	var shortOhlcv, middleOhlcv, longOhlcv [][][]json.Number
-	var shortSMA, middleSMA, longSMA []int
-	var shortESMA, middleESMA, longESMA []int
+	var shortOhlcv, middleOhlcv, longOhlcv []*model.Candlesticks
+	var shortSMA, middleSMA, longSMA []int64
+	var shortESMA, middleESMA, longESMA []int64
 
+	var conv repository.IDataConverter
+	conv = new(converter.BitBankDataConverter)
+	var calc repository.ICalculator
+	calc = new(calculator.Calculator)
 	offsets := [...] int{0,1,2,3,4}
 
 	for _, v := range offsets {
-		shortOhlcv = append(shortOhlcv, getOhlcv(candlesticks, 7, v))
-		middleOhlcv = append(middleOhlcv, getOhlcv(candlesticks, 28, v))
-		longOhlcv = append(longOhlcv, getOhlcv(candlesticks, 74, v))
+		shortOhlcv = append(shortOhlcv, conv.GetOhlcv(candlesticks, 7, v))
+		middleOhlcv = append(middleOhlcv, conv.GetOhlcv(candlesticks, 28, v))
+		longOhlcv = append(longOhlcv, conv.GetOhlcv(candlesticks, 74, v))
 
-		shortSMA = append(shortSMA, getSMA(shortOhlcv[v]))
-		shortESMA = append(shortESMA, getESMA(shortOhlcv[v]))
+		shortSMA = append(shortSMA, calc.GetSMA(shortOhlcv[v]))
+		shortESMA = append(shortESMA, calc.GetESMA(shortOhlcv[v]))
 
-		middleSMA = append(middleSMA, getSMA(middleOhlcv[v]))
-		middleESMA = append(middleESMA, getESMA(shortOhlcv[v]))
+		middleSMA = append(middleSMA, calc.GetSMA(middleOhlcv[v]))
+		middleESMA = append(middleESMA, calc.GetESMA(shortOhlcv[v]))
 		
-		longSMA = append(longSMA, getSMA(longOhlcv[v]))
-		longESMA = append(longESMA, getESMA(shortOhlcv[v]))
+		longSMA = append(longSMA, calc.GetSMA(longOhlcv[v]))
+		longESMA = append(longESMA, calc.GetESMA(shortOhlcv[v]))
 	}
 
 	fmt.Printf("short SMA:\t%d\n", shortSMA)
@@ -116,26 +66,26 @@ func main() {
 	fmt.Printf("long SMA:\t%d\n", longSMA)
 	fmt.Printf("long ESMA:\t%d\n", longESMA)
 
-	assets, _ := getAssets()
+	assets, _ := api.GetAssets()
 
-	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[0].Asset)
-	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[0].FreeAmount)
-	fmt.Printf("assets type:\t%v\n", assets.Data.Assets[1].Asset)
-	fmt.Printf("free amount:\t%v\n", assets.Data.Assets[1].FreeAmount)
+	fmt.Printf("assets type:\t%v\n", assets.Data[0].Asset)
+	fmt.Printf("free amount:\t%f\n", assets.Data[0].FreeAmount)
+	fmt.Printf("assets type:\t%v\n", assets.Data[1].Asset)
+	fmt.Printf("free amount:\t%f\n", assets.Data[1].FreeAmount)
 
-	depth, _ := getDepth()
+	// depth, _ := api.GetDepth(pairBtcJpy)
 
-	for _, v := range depth.Data.Asks {
-		price, _ := v[0].Int64()
-		volume, _ := v[1].Float64()
-		fmt.Printf("depth ask price: \t%d\n", price)
-		fmt.Printf("depth ask volume: \t%g\n", volume)
-	}
+	// for _, v := range depth.Data.Asks {
+	// 	price := v.Price
+	// 	volume := v.Volume
+	// 	fmt.Printf("depth ask price: \t%d\n", price)
+	// 	fmt.Printf("depth ask volume: \t%g\n", volume)
+	// }
 
-	for _, v := range depth.Data.Bids {
-		price, _ := v[0].Int64()
-		volume, _ := v[1].Float64()
-		fmt.Printf("depth bid price: \t%d\n", price)
-		fmt.Printf("depth bid volume: \t%g\n", volume)
-	}
+	// for _, v := range depth.Data.Bids {
+	// 	price := v.Price
+	// 	volume := v.Volume
+	// 	fmt.Printf("depth bid price: \t%d\n", price)
+	// 	fmt.Printf("depth bid volume: \t%g\n", volume)
+	// }
 }
