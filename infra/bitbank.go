@@ -9,22 +9,25 @@ import (
 	"github.com/suotas/chihuahua/domain/model"
 )
 
-type BitBankApi struct {
+// BitBankAPI bitbank API specific client struct.
+type BitBankAPI struct {
 	client *bitbank.Client
 	ctx *context.Context
 }
 
-func NewClient(apiKey, secret string) (*BitBankApi, error) {
+// NewClient is constructor for BitBankAPI.
+func NewClient(apiKey, secret string) (*BitBankAPI, error) {
 	client, err := bitbank.NewClient(apiKey, secret, nil)
 	if err != nil {
 		return nil, err
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	return &BitBankApi{client: client, ctx: &ctx}, nil
+	return &BitBankAPI{client: client, ctx: &ctx}, nil
 }
 
-func (b *BitBankApi) GetAssets() (*model.Assets, error) {
+// GetAssets get assets info from bitbank API.
+func (b *BitBankAPI) GetAssets() (*model.Assets, error) {
 	result := new(model.Assets)
 	bitbankAssets, err := b.client.GetAssets(*b.ctx)
 	if err != nil {
@@ -39,7 +42,8 @@ func (b *BitBankApi) GetAssets() (*model.Assets, error) {
 	return result, nil
 }
 
-func (b *BitBankApi) GetDepth(pair string) (*model.Depth, error) {
+// GetDepth get depth info from bitbank API.
+func (b *BitBankAPI) GetDepth(pair string) (*model.Depth, error) {
 	result := model.NewDepth()
 	bitbankDepth, err := b.client.GetDepth(*b.ctx, pair)
 	if err != nil {
@@ -60,7 +64,8 @@ func (b *BitBankApi) GetDepth(pair string) (*model.Depth, error) {
 	return result, nil
 }
 
-func (b *BitBankApi) GetCandlesticks(pair, candleType, date string) (*model.Candlesticks, error) {
+// GetCandlesticks get candlestick data from bitbank API.
+func (b *BitBankAPI) GetCandlesticks(pair, candleType, date string) (*model.Candlesticks, error) {
 	result := new(model.Candlesticks)
 	bitbankCandlesticks, err := b.client.GetCandlesticks(*b.ctx, pair, candleType, date)
 	if err != nil {
