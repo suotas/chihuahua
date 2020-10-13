@@ -12,7 +12,6 @@ import (
 // BitBankAPI bitbank API specific client struct.
 type BitBankAPI struct {
 	client *bitbank.Client
-	ctx *context.Context
 }
 
 // NewClient is constructor for BitBankAPI.
@@ -21,15 +20,14 @@ func NewClient(apiKey, secret string) (*BitBankAPI, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-
-	return &BitBankAPI{client: client, ctx: &ctx}, nil
+	return &BitBankAPI{client: client}, nil
 }
 
 // GetAssets get assets info from bitbank API.
 func (b *BitBankAPI) GetAssets() (*model.Assets, error) {
 	result := new(model.Assets)
-	bitbankAssets, err := b.client.GetAssets(*b.ctx)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	bitbankAssets, err := b.client.GetAssets(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +43,8 @@ func (b *BitBankAPI) GetAssets() (*model.Assets, error) {
 // GetDepth get depth info from bitbank API.
 func (b *BitBankAPI) GetDepth(pair string) (*model.Depth, error) {
 	result := model.NewDepth()
-	bitbankDepth, err := b.client.GetDepth(*b.ctx, pair)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	bitbankDepth, err := b.client.GetDepth(ctx, pair)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +66,8 @@ func (b *BitBankAPI) GetDepth(pair string) (*model.Depth, error) {
 // GetCandlesticks get candlestick data from bitbank API.
 func (b *BitBankAPI) GetCandlesticks(pair, candleType, date string) (*model.Candlesticks, error) {
 	result := new(model.Candlesticks)
-	bitbankCandlesticks, err := b.client.GetCandlesticks(*b.ctx, pair, candleType, date)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	bitbankCandlesticks, err := b.client.GetCandlesticks(ctx, pair, candleType, date)
 	if err != nil {
 		return nil, err
 	}
