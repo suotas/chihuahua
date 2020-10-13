@@ -5,6 +5,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/suotas/chihuahua/adapter"
 	"github.com/suotas/chihuahua/domain"
+	"github.com/suotas/chihuahua/infra"
+	"github.com/suotas/chihuahua/usecase"
 )
 
 // main function
@@ -15,5 +17,8 @@ func main() {
 	envconfig.Process("", &config)
 	
 	// scheduler start
-	adapter.Execute(config)
+	client, _ := infra.NewClient(config.BITBANK_API_KEY, config.BITBANK_SECRET)
+	usecase := usecase.NewSMAUseCase(client)
+	scheduler := adapter.NewScheduler(usecase)
+	scheduler.Execute(config)
 }

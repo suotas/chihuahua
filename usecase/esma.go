@@ -10,21 +10,21 @@ import (
 	"github.com/suotas/chihuahua/domain/model"
 )
 
-type SMAUseCase struct {
+type ESMAUseCase struct {
 	client api.IApiClient
 }
 
-func NewSMAUseCase (client api.IApiClient) (IIndicatorUseCase){
-	usecase := SMAUseCase{client: client}
+func NewESMAUseCase (client api.IApiClient) (IIndicatorUseCase){
+	usecase := ESMAUseCase{client: client}
 	return &usecase
 }
 
-// Execute get ohlcv and calculate SMA function.
-func (u *SMAUseCase) Execute(config domain.Config) {
+// Execute get ohlcv and calculate ESMA function.
+func (u *ESMAUseCase) Execute(config domain.Config) {
 	candlesticks, _ := u.client.GetCandlesticks(config.TRADE_PAIR, config.USE_CANDLE_TYPE, "2020")
 
 	var shortOhlcv, middleOhlcv, longOhlcv []*model.Candlesticks
-	var shortSMA, middleSMA, longSMA []int64
+	var shortESMA, middleESMA, longESMA []int64
 
 	var conv converter.IDataConverter
 	conv = new(converter.BitBankDataConverter)
@@ -37,12 +37,12 @@ func (u *SMAUseCase) Execute(config domain.Config) {
 		middleOhlcv = append(middleOhlcv, conv.GetOhlcv(candlesticks, 28, v))
 		longOhlcv = append(longOhlcv, conv.GetOhlcv(candlesticks, 74, v))
 
-		shortSMA = append(shortSMA, calc.GetSMA(shortOhlcv[v]))
-		middleSMA = append(middleSMA, calc.GetSMA(middleOhlcv[v]))
-		longSMA = append(longSMA, calc.GetSMA(longOhlcv[v]))
+		shortESMA = append(shortESMA, calc.GetESMA(shortOhlcv[v]))
+		middleESMA = append(middleESMA, calc.GetESMA(shortOhlcv[v]))
+		longESMA = append(longESMA, calc.GetESMA(shortOhlcv[v]))
 	}
 
-	fmt.Printf("short SMA:\t%d\n", shortSMA)
-	fmt.Printf("middle SMA:\t%d\n", middleSMA)
-	fmt.Printf("long SMA:\t%d\n", longSMA)
+	fmt.Printf("short ESMA:\t%d\n", shortESMA)
+	fmt.Printf("middle ESMA:\t%d\n", middleESMA)
+	fmt.Printf("long ESMA:\t%d\n", longESMA)
 }
