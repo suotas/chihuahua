@@ -19,3 +19,6 @@ go.sum
 
 # godotenv file
 .env
+
+# VSCode file
+.vscode/*
