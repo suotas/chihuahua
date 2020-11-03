@@ -6,6 +6,7 @@ import (
 	"time"
 
 	bitbank "github.com/jjjjpppp/bitbank-go-client/v1"
+	"github.com/jjjjpppp/bitbank-go-client/v1/request"
 	"github.com/suotas/chihuahua/domain/model"
 )
 
@@ -81,5 +82,32 @@ func (b *BitBankAPI) GetCandlesticks(pair, candleType, date string) (*model.Cand
 		assetData := model.Ohlcv{Open: open, High: high, Low: low, Close: close, Volume: volume, Timestamp: timestamp}
 		result.Data = append(result.Data, &assetData)
 	}
+	return result, nil
+}
+
+func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*model.Orders, error){
+	result := new(model.Orders)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	bitbankActiveOrders, err := b.client.GetActiveOrders(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range bitbankActiveOrders.Data.Orders {
+		orderId := v.OrderID
+		pair := v.Pair
+		side := v.Side
+		_type := v.Type
+		startAmount := v.StartAmount
+		remainingAmount := v.RemainingAmount
+		executedAmount := v.ExecutedAmount
+		price := v.Price
+		averagePrice := v.AveragePrice
+		orderedAt := v.OrderedAt
+		status := v.Status
+		orderData := model.Order{OrderID: orderId, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
+		result.Data = append(result.Data, &orderData)
+	}
+
 	return result, nil
 }
