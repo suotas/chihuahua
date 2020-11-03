@@ -3,6 +3,7 @@
 chihuahua is BTC trade automation system.
 
 # Getting started
+```git clone https://github.com/suotas/chihuahua.git```  
 ```cp example.env .env```  
 ```vi .env```
 
