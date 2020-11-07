@@ -102,7 +102,7 @@ func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*mod
 	}
 
 	for _, v := range bitbankActiveOrders.Data.Orders {
-		orderId := v.OrderID
+		orderID := v.OrderID
 		pair := v.Pair
 		side := v.Side
 		_type := v.Type
@@ -113,7 +113,7 @@ func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*mod
 		averagePrice := v.AveragePrice
 		orderedAt := v.OrderedAt
 		status := v.Status
-		orderData := model.Order{OrderID: orderId, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
+		orderData := model.Order{OrderID: orderID, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
 		result.Data = append(result.Data, &orderData)
 	}
 
@@ -129,7 +129,7 @@ func (b *BitBankAPI) CreateOrder(params request.CreateOrderParams) (*model.Order
 		return nil, err
 	}
 
-	orderId := bitbankOrder.Data.OrderID
+	orderID := bitbankOrder.Data.OrderID
 	pair := bitbankOrder.Data.Pair
 	side := bitbankOrder.Data.Side
 	_type := bitbankOrder.Data.Type
@@ -140,7 +140,7 @@ func (b *BitBankAPI) CreateOrder(params request.CreateOrderParams) (*model.Order
 	averagePrice := bitbankOrder.Data.AveragePrice
 	orderedAt := bitbankOrder.Data.OrderedAt
 	status := bitbankOrder.Data.Status
-	result = &model.Order{OrderID: orderId, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
+	result = &model.Order{OrderID: orderID, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
 
 	return result, nil
 }
