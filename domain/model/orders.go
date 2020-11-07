@@ -5,7 +5,7 @@ type Orders struct {
 }
 
 type Order struct {
-	OrderID string			`json:"order_id,omitempty"`
+	OrderID int				`json:"order_id,omitempty"`
 	Pair string				`json:"pair,omitempty"`
 	Side string				`json:"side,omitempty"`
 	Type string				`json:"type,omitempty"`
