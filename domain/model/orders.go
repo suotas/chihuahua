@@ -1,7 +1,7 @@
 package model
 
 type Orders struct {
-	Order []*Order
+	Data []*Order
 }
 
 type Order struct {
