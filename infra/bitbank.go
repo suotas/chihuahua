@@ -32,12 +32,14 @@ func (b *BitBankAPI) GetAssets() (*model.Assets, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, v := range bitbankAssets.Data.Assets {
 		asset := v.Asset
 		freeAmount, _ := strconv.ParseFloat(v.FreeAmount, 64)
 		assetData := model.Asset{Asset: asset, FreeAmount: freeAmount}
 		result.Data = append(result.Data, &assetData)
 	}
+	
 	return result, nil
 }
 
@@ -49,18 +51,21 @@ func (b *BitBankAPI) GetDepth(pair string) (*model.Depth, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, v := range bitbankDepth.Data.Asks {
 		price, _ := v[0].Int64()
 		volume, _ := v[1].Float64()
 		depthPair := model.DepthPair{Price: price, Volume: volume}
 		result.Data.Asks = append(result.Data.Asks, depthPair)
 	}
+
 	for _, v := range bitbankDepth.Data.Bids {
 		price, _ := v[0].Int64()
 		volume, _ := v[1].Float64()
 		depthPair := model.DepthPair{Price: price, Volume: volume}
 		result.Data.Bids = append(result.Data.Bids, depthPair)
 	}
+
 	return result, nil
 }
 
@@ -72,6 +77,7 @@ func (b *BitBankAPI) GetCandlesticks(pair, candleType, date string) (*model.Cand
 	if err != nil {
 		return nil, err
 	}
+
 	for _, v := range bitbankCandlesticks.Data.Candlesticks[0].Ohlcv {
 		open, _ := v[0].Int64()
 		high, _ := v[1].Int64()
@@ -82,9 +88,11 @@ func (b *BitBankAPI) GetCandlesticks(pair, candleType, date string) (*model.Cand
 		assetData := model.Ohlcv{Open: open, High: high, Low: low, Close: close, Volume: volume, Timestamp: timestamp}
 		result.Data = append(result.Data, &assetData)
 	}
+
 	return result, nil
 }
 
+// GetActiveOrders get active sent orders data from bitbank API.
 func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*model.Orders, error){
 	result := new(model.Orders)
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -94,7 +102,7 @@ func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*mod
 	}
 
 	for _, v := range bitbankActiveOrders.Data.Orders {
-		orderId := v.OrderID
+		orderID := v.OrderID
 		pair := v.Pair
 		side := v.Side
 		_type := v.Type
@@ -105,9 +113,34 @@ func (b *BitBankAPI) GetActiveOrders(params request.GetActiveOrdersParams) (*mod
 		averagePrice := v.AveragePrice
 		orderedAt := v.OrderedAt
 		status := v.Status
-		orderData := model.Order{OrderID: orderId, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
+		orderData := model.Order{OrderID: orderID, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
 		result.Data = append(result.Data, &orderData)
 	}
+
+	return result, nil
+}
+
+// CreateOrder send buy or sell order to bitbank API.
+func (b *BitBankAPI) CreateOrder(params request.CreateOrderParams) (*model.Order, error) {
+	result := new(model.Order)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	bitbankOrder, err := b.client.CreateOrder(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	orderID := bitbankOrder.Data.OrderID
+	pair := bitbankOrder.Data.Pair
+	side := bitbankOrder.Data.Side
+	_type := bitbankOrder.Data.Type
+	startAmount := bitbankOrder.Data.StartAmount
+	remainingAmount := bitbankOrder.Data.RemainingAmount
+	executedAmount := bitbankOrder.Data.ExecutedAmount
+	price := bitbankOrder.Data.Price
+	averagePrice := bitbankOrder.Data.AveragePrice
+	orderedAt := bitbankOrder.Data.OrderedAt
+	status := bitbankOrder.Data.Status
+	result = &model.Order{OrderID: orderID, Pair: pair, Side: side, Type: _type, StartAmount: startAmount, RemainingAmount: remainingAmount, ExecutedAmount: executedAmount, Price: price, AveragePrice: averagePrice, OrderedAt: orderedAt, Status: status}
 
 	return result, nil
 }

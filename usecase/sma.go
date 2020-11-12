@@ -20,7 +20,7 @@ func NewSMAUseCase (client api.IApiClient) (IIndicatorUseCase){
 }
 
 // Execute get ohlcv and calculate SMA function.
-func (u *SMAUseCase) Execute(config domain.Config) {
+func (u *SMAUseCase) Execute(config domain.Config) (string) {
 	candlesticks, _ := u.client.GetCandlesticks(config.TRADE_PAIR, config.USE_CANDLE_TYPE, "2020")
 
 	var shortOhlcv, middleOhlcv, longOhlcv []*model.Candlesticks
@@ -45,4 +45,6 @@ func (u *SMAUseCase) Execute(config domain.Config) {
 	fmt.Printf("short SMA:\t%d\n", shortSMA)
 	fmt.Printf("middle SMA:\t%d\n", middleSMA)
 	fmt.Printf("long SMA:\t%d\n", longSMA)
+
+	return ""
 }
