@@ -20,7 +20,7 @@ func NewESMAUseCase (client api.IApiClient) (IIndicatorUseCase){
 }
 
 // Execute get ohlcv and calculate ESMA function.
-func (u *ESMAUseCase) Execute(config domain.Config) {
+func (u *ESMAUseCase) Execute(config domain.Config) (string) {
 	candlesticks, _ := u.client.GetCandlesticks(config.TRADE_PAIR, config.USE_CANDLE_TYPE, "2020")
 
 	var shortOhlcv, middleOhlcv, longOhlcv []*model.Candlesticks
@@ -45,4 +45,6 @@ func (u *ESMAUseCase) Execute(config domain.Config) {
 	fmt.Printf("short ESMA:\t%d\n", shortESMA)
 	fmt.Printf("middle ESMA:\t%d\n", middleESMA)
 	fmt.Printf("long ESMA:\t%d\n", longESMA)
+
+	return ""
 }
